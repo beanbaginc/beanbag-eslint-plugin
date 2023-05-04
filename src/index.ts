@@ -1079,6 +1079,77 @@ const typescriptConfig = {
          * disallow it. We convert to a warning, to help port legacy code.
          */
         '@typescript-eslint/no-this-alias': 'warn',
+
+        /*
+         * Warn on blank lines before the start of comments (single or
+         * multi-line), except at the start of blocks.
+         *
+         * For example:
+         *
+         *     {
+         *         // A thing.
+         *         foo();
+         *
+         *         // Another thing.
+         *         bar();
+         *     }
+         *
+         * Not:
+         *
+         *     {
+         *         // A thing.
+         *         foo();
+         *         // Another thing.
+         *         bar();
+         *     }
+         *
+         * https://eslint.org/docs/latest/rules/lines-around-comment
+         */
+        '@typescript-eslint/lines-around-comment': [
+            'warn',
+            {
+                beforeBlockComment: true,
+                beforeLineComment: true,
+
+                allowArrayEnd: true,
+                allowArrayStart: true,
+
+                allowBlockEnd: true,
+                allowBlockStart: true,
+
+                allowClassEnd: true,
+                allowClassStart: true,
+
+                allowEnumEnd: true,
+                allowEnumStart: true,
+
+                allowInterfaceEnd: true,
+                allowInterfaceStart: true,
+
+                allowModuleEnd: true,
+                allowModuleStart: true,
+
+                allowObjectEnd: true,
+                allowObjectStart: true,
+
+                allowTypeEnd: true,
+                allowTypeStart: true,
+
+                /*
+                 * Special comments used for other purposes.
+                 *
+                 * We actually set this one to avoid issues with the
+                 * "falls through" regex for `case` statements in `switch`
+                 * (see the `no-fallthrough` rule).
+                 */
+                ignorePattern: noFallThroughPattern,
+            },
+        ],
+
+        /*
+         * Turn off the basic JS lines-around-comment.
+         */
+        'lines-around-comment': 'off',
     },
 };
 
