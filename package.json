@@ -1,6 +1,6 @@
 {
     "name": "@beanbag/eslint-plugin",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Configuration used for linting Beanbag JavaScript codebases.",
     "homepage": "https://github.com/beanbaginc/beanbag-eslint-plugin",
     "github": "https://github.com/beanbaginc/beanbag-eslint-plugin",
