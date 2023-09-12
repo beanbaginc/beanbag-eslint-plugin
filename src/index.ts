@@ -1081,6 +1081,11 @@ const typescriptConfig = {
         '@typescript-eslint/no-this-alias': 'warn',
 
         /*
+         * Turn off the basic JS lines-around-comment.
+         */
+        'lines-around-comment': 'off',
+
+        /*
          * Warn on blank lines before the start of comments (single or
          * multi-line), except at the start of blocks.
          *
@@ -1147,9 +1152,20 @@ const typescriptConfig = {
         ],
 
         /*
-         * Turn off the basic JS lines-around-comment.
+         * Turn off the basic JS no-unused-vars.
          */
-        'lines-around-comment': 'off',
+        'no-unused-vars': 'off',
+
+        /*
+         * TS-specific unused vars config.
+         */
+        '@typescript-eslint/no-unused-vars': [
+            'error',
+            {
+                args: 'none',
+                vars: 'local',
+            },
+        ],
     },
 };
 
