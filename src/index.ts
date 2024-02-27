@@ -431,14 +431,25 @@ const es5Config = {
                  */
                 'SwitchCase': 1,
 
-                /*
-                 * Ignore indentation rules for ternary expressions.
-                 *
-                 * We don't get much control over these in ESLint, and it's
-                 * better just to turn this rule off.
-                 */
                 'ignoredNodes': [
+                    /*
+                     * Ignore indentation rules for ternary expressions.
+                     *
+                     * We don't get much control over these in ESLint, and it's
+                     * better just to turn this rule off.
+                     */
                     'ConditionalExpression',
+
+                    /*
+                     * Ignore indentation rules for template literals.
+                     *
+                     * In more complex template literals where embedded data
+                     * may span multiple lines, it's more likely than not
+                     * that the embedded content would be best indented
+                     * relative to some string content in the template. We
+                     * disable indentation rules to help enable this.
+                     */
+                    'TemplateLiteral > *',
                 ],
 
                 /*
@@ -1170,6 +1181,22 @@ const typescriptConfig = {
 };
 
 
+/**
+ * Rules for JSX files.
+ *
+ * This simply enables JSX parsing for supported JSX file extensions.
+ *
+ * This is meant to be mixed in with a JavaScript configuration.
+ */
+const jsxConfig = {
+    parserOptions: {
+        'ecmaFeatures': {
+            'jsx': true,
+        },
+    },
+};
+
+
 /*
  * Rules for Jasmine codebases.
  *
@@ -1266,14 +1293,38 @@ const jasmineTestsConfig = {
 };
 
 
+/**
+ * Rules for Storybook files.
+ *
+ * This alters the rules a bit to make it easier to write Storybook "Story"
+ * files in a more standard way.
+ *
+ * This is meant to be mixed in with a JavaScript configuration.
+ */
+const storybookConfig = {
+    rules: {
+        /*
+         * Don't warn about sorting keys in objects.
+         *
+         * There's a reasonable Story-specific flow to Story configurations,
+         * and sorting by key isn't necessarily it. Allow Stories to define
+         * the flows they want.
+         */
+        'sort-keys': 'off',
+    },
+};
+
+
 export const configs = {
     /* JavaScript rulesets */
     es5: es5Config,
     es6: es6Config,
+    jsx: jsxConfig,
     typescript: typescriptConfig,
 
     /* Environmental rulesets */
     jasmine: jasmineTestsConfig,
+    storybook: storybookConfig,
 
     /* Recommended ruleset */
     recommended: {
@@ -1286,35 +1337,73 @@ export const configs = {
         ],
 
         overrides: [
+            /* ES6 JavaScript */
             {
                 files: [
                     '*.es6.js',
+                    '*.es6.jsx',
                 ],
 
                 extends: [
                     'plugin:@beanbag/es6',
                 ],
             },
+
+            /* TypeScript */
             {
                 files: [
                     '*.ts',
+                    '*.tsx',
                 ],
 
                 extends: [
                     'plugin:@beanbag/typescript',
                 ],
             },
+
+            /* JSX files. */
+            {
+                files: [
+                    '*.jsx',
+                    '*.tsx',
+                ],
+
+                extends: [
+                    'plugin:@beanbag/jsx',
+                ],
+            },
+
+            /* Jasmine Unit Tests */
             {
                 files: [
                     '*Tests.es6.js',
+                    '*Tests.es6.jsx',
                     '*Tests.js',
+                    '*Tests.jsx',
                     '*Tests.ts',
+                    '*Tests.tsx',
                 ],
 
                 extends: [
                     'plugin:@beanbag/jasmine',
                 ],
             },
+
+            /* Storybook Stories */
+            {
+                files: [
+                    '*.stories.js',
+                    '*.stories.jsx',
+                    '*.stories.ts',
+                    '*.stories.tsx',
+                ],
+
+                extends: [
+                    'plugin:@beanbag/storybook',
+                ],
+            },
+
+            /* JavaScript Build Configuration */
             {
                 files: [
                     'rollup.config.js',
