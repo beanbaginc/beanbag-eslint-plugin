@@ -907,6 +907,7 @@ const es5Config = {
          *     /* This is another ...
          *     /** This is a doc comment ...
          *     /*! This is a special comment ...
+         *     /// <reference types="my-types"/>
          *
          * Not:
          *
@@ -922,7 +923,8 @@ const es5Config = {
                 block: {
                     markers: ['*', '!'],
                 },
-                exceptions: ['*', '-'],
+                exceptions: ['*', '-', '/'],
+                markers: ['/'],
             },
         ],
 
