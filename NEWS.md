@@ -1,5 +1,10 @@
 # Beanbag-ESLint-Plugin Releases
 
+## Version 2.0.1 (1-April-2024)
+
+* Triple-slash comments (used for TypeScript) no longer trigger a lint warning.
+
+
 ## Version 2.0 (26-February-2024)
 
 * Added rules specific to [Storybook](https://storybook.js.org/).
