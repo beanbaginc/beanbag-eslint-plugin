@@ -32,110 +32,11 @@ const es5Config = {
         'eslint:recommended',
     ],
 
+    plugins: [
+        '@stylistic',
+    ],
+
     rules: {
-        /*
-         * Require space around `=>`.
-         *
-         * For example:
-         *
-         *     func(a => true)
-         *
-         * Not:
-         *
-         *     func(a=>true)
-         *
-         * https://eslint.org/docs/latest/rules/arrow-spacing
-         */
-        'arrow-spacing': [
-            'error',
-            {
-                after: true,
-                before: true,
-            },
-        ],
-
-        /*
-         * Require brace styles in the form of:
-         *
-         *     if (foo) {
-         *         ...
-         *     } else {
-         *         ...
-         *     }
-         *
-         * Single-line inline functions are allowed:
-         *
-         *     array.map(function(a) { return a + 1; });
-         *
-         * https://eslint.org/docs/latest/rules/brace-style
-         */
-        'brace-style': [
-            'error',
-            '1tbs',
-            {
-                allowSingleLine: true,
-            },
-        ],
-
-        /*
-         * Disallow trailing commas.
-         *
-         * This is not safe on ES5. We will enable it on ES6.
-         *
-         * https://eslint.org/docs/latest/rules/comma-dangle
-         */
-        'comma-dangle': [
-            'error',
-            'never',
-        ],
-
-        /*
-         * Require spaces after a comma, but disallow it before.
-         *
-         * For example:
-         *
-         *     a, b, c
-         *
-         * Not:
-         *
-         *     a ,b ,c
-         *
-         * https://eslint.org/docs/latest/rules/comma-spacing
-         */
-        'comma-spacing': [
-            'error',
-            {
-                after: true,
-                before: false,
-            },
-        ],
-
-        /*
-         * Require commas at the end of a line, not before.
-         *
-         * For example:
-         *
-         *     [
-         *         1,
-         *         2,
-         *         3,
-         *     ]
-         *
-         * Not:
-         *
-         *     [
-         *         1
-         *     ,   2
-         *     ,   3
-         *     ]
-         *
-         * https://eslint.org/docs/latest/rules/comma-style
-         */
-        'comma-style': [
-            'error',
-            'last',
-        ],
-
         /*
          * Always require braces on statements like `if`. For example:
          *
@@ -182,6 +83,254 @@ const es5Config = {
         ],
 
         /*
+         * Allow fall-through on `case` statements in a `switch`.
+         *
+         * This is normally disabled by the recommended ESLint rules. We enable
+         * it, but only if the `case` is empty or contains a comment with the
+         * regex `/falls?\s?through/i`.
+         *
+         * https://eslint.org/docs/latest/rules/no-fallthrough
+         */
+        'no-fallthrough': [
+            'error',
+            {
+                allowEmptyCase: true,
+                commentPattern: noFallThroughPattern,
+            },
+        ],
+
+        /*
+         * Allow Object.prototype builtins, like `.hasOwnProperty()`.
+         *
+         * Normally, ESLint disables these builtins, because they can be
+         * a security issue if parsing unsafe JSON input from another
+         * place, but we currently need these. We may go back to defaults
+         * in the future.
+         *
+         * https://eslint.org/docs/latest/rules/no-prototype-builtins
+         */
+        'no-prototype-builtins': 'off',
+
+        /*
+         * Warn if there are any unused variables defined in the scope. This
+         * won't apply to function arguments.
+         *
+         * https://eslint.org/docs/latest/rules/no-unused-vars
+         */
+        'no-unused-vars': [
+            'error',
+            {
+                args: 'none',
+                vars: 'local',
+            },
+        ],
+
+        /*
+         * Warn if keys aren't sorted in objects.
+         *
+         * Sorting takes place in consecutive lists of keys. Groups of keys
+         * can be separated by blank lines. Sorting then happens within each
+         * group.
+         *
+         * For example:
+         *
+         *     var o = {
+         *         a: 1,
+         *         b: 2,
+         *         z: 3,
+         *
+         *         c: 4,
+         *         h: 5
+         *     };
+         *
+         * Not:
+         *
+         *     var o = {
+         *         z: 3,
+         *         a: 1,
+         *         b: 2,
+         *         h: 5,
+         *         c: 4
+         *     };
+         *
+         * https://eslint.org/docs/latest/rules/sort-keys
+         */
+        'sort-keys': [
+            'warn',
+            'asc',
+            {
+                allowLineSeparatedGroups: true,
+            },
+        ],
+
+        /*
+         * Disallow inverse comparisons where the variable is on the right-hand
+         * side.
+         *
+         * For example:
+         *
+         *     if (myVar === 1) { ... }
+         *
+         * Not:
+         *
+         *     if (1 === myVar) { ... }
+         */
+        'yoda': [
+            'error',
+            'never',
+        ],
+
+        /*
+         * Require space around `=>`.
+         *
+         * For example:
+         *
+         *     func(a => true)
+         *
+         * Not:
+         *
+         *     func(a=>true)
+         *
+         * https://v4.eslint.style/rules/default/arrow-spacing
+         */
+        '@stylistic/arrow-spacing': [
+            'error',
+            {
+                after: true,
+                before: true,
+            },
+        ],
+
+        /*
+         * Require brace styles in the form of:
+         *
+         *     if (foo) {
+         *         ...
+         *     } else {
+         *         ...
+         *     }
+         *
+         * Single-line inline functions are allowed:
+         *
+         *     array.map(function(a) { return a + 1; });
+         *
+         * https://v4.eslint.style/rules/default/brace-style
+         */
+        '@stylistic/brace-style': [
+            'error',
+            '1tbs',
+            {
+                allowSingleLine: true,
+            },
+        ],
+
+        /*
+         * Require trailing commas on multi-line statements (only).
+         *
+         * This is optional for multi-line functions and calls (for example,
+         * we'd want them for typed functions in TypeScript, but shouldn't
+         * always require them.
+         *
+         * For example:
+         *
+         *     const a = [1, 2, 3];
+         *     const b = [
+         *         1,
+         *         2,
+         *         3,
+         *     ];
+         *     const o = {
+         *         key: 'value',
+         *     };
+         *
+         *     function myFunc(
+         *         a,
+         *         b,
+         *         c,
+         *     ) {
+         *         ...
+         *     }
+         *
+         * Not:
+         *
+         *     const a = [1, 2, 3,];
+         *     const b = [
+         *         1,
+         *         2,
+         *         3
+         *     ];
+         *     const o = {
+         *         key: 'value'
+         *     };
+         *
+         *     function myFunc(a, b, c,) {
+         *         ...
+         *     }
+         *
+         * https://v4.eslint.style/rules/default/comma-dangle
+         */
+        '@stylistic/comma-dangle': [
+            'error',
+            {
+                arrays: 'always-multiline',
+                enums: 'always-multiline',
+                exports: 'always-multiline',
+                functions: 'only-multiline',
+                generics: 'only-multiline',
+                imports: 'always-multiline',
+                objects: 'always-multiline',
+                tuples: 'always-multiline',
+            },
+        ],
+
+        /*
+         * Require spaces after a comma, but disallow it before.
+         *
+         * For example:
+         *
+         *     a, b, c
+         *
+         * Not:
+         *
+         *     a ,b ,c
+         *
+         * https://v4.eslint.style/rules/default/comma-spacing
+         */
+        '@stylistic/comma-spacing': [
+            'error',
+            {
+                after: true,
+                before: false,
+            },
+        ],
+
+        /*
+         * Require commas at the end of a line, not before.
+         *
+         * For example:
+         *
+         *     [
+         *         1,
+         *         2,
+         *         3,
+         *     ]
+         *
+         * Not:
+         *
+         *     [
+         *         1
+         *     ,   2
+         *     ,   3
+         *     ]
+         *
+         * https://v4.eslint.style/rules/default/comma-style
+         */
+        '@stylistic/comma-style': [
+            'error',
+            'last',
+        ],
+
+        /*
          * Disallow spaces before parens in function calls.
          *
          * For example:
@@ -192,9 +341,9 @@ const es5Config = {
          *
          *     foo ()
          *
-         * https://eslint.org/docs/latest/rules/func-call-spacing
+         * https://v4.eslint.style/rules/default/function-call-spacing
          */
-        'func-call-spacing': [
+        '@stylistic/function-call-spacing': [
             'error',
             'never',
         ],
@@ -202,9 +351,9 @@ const es5Config = {
         /*
          * Rules for managing indentation.
          *
-         * https://eslint.org/docs/latest/rules/indent
+         * https://v4.eslint.style/rules/default/indent
          */
-        'indent': [
+        '@stylistic/indent': [
             'error',
             4,  // 4-space indentation
             {
@@ -450,6 +599,12 @@ const es5Config = {
                      * disable indentation rules to help enable this.
                      */
                     'TemplateLiteral > *',
+
+                    /*
+                     * Ignore indentation rules for TypeScript generics.
+                     */
+                    'TSTypeParameterInstantiation',
+                    'TSTypeAnnotation',
                 ],
 
                 /*
@@ -462,8 +617,10 @@ const es5Config = {
 
         /*
          * Require UNIX-style line breaks.
+         *
+         * https://v4.eslint.style/rules/default/linebreak-style
          */
-        'linebreak-style': [
+        '@stylistic/linebreak-style': [
             'error',
             'unix',
         ],
@@ -491,9 +648,9 @@ const es5Config = {
          *         bar();
          *     }
          *
-         * https://eslint.org/docs/latest/rules/lines-around-comment
+         * https://v4.eslint.style/rules/default/lines-around-comment
          */
-        'lines-around-comment': [
+        '@stylistic/lines-around-comment': [
             'warn',
             {
                 beforeBlockComment: true,
@@ -508,8 +665,20 @@ const es5Config = {
                 allowClassEnd: true,
                 allowClassStart: true,
 
+                allowEnumEnd: true,
+                allowEnumStart: true,
+
+                allowInterfaceEnd: true,
+                allowInterfaceStart: true,
+
+                allowModuleEnd: true,
+                allowModuleStart: true,
+
                 allowObjectEnd: true,
                 allowObjectStart: true,
+
+                allowTypeEnd: true,
+                allowTypeStart: true,
 
                 /*
                  * Special comments used for other purposes.
@@ -526,9 +695,9 @@ const es5Config = {
          * Enforce a maximum line length, except for gettext()-localized
          * strings or lines with long URLs.
          *
-         * https://eslint.org/docs/latest/rules/max-len
+         * https://v4.eslint.style/rules/default/max-len
          */
-        'max-len': [
+        '@stylistic/max-len': [
             'error',
             {
                 code: 79,
@@ -542,7 +711,7 @@ const es5Config = {
          *
          * Require multi-line comments to align all `*`'s.
          *
-         * https://eslint.org/docs/latest/rules/multiline-comment-style
+         * https://v4.eslint.style/rules/default/multiline-comment-style
          */
         /*
         'multiline-comment-style': [
@@ -562,9 +731,9 @@ const es5Config = {
          *
          *     var x = a => 1 ? 2 : 3;
          *
-         * https://eslint.org/docs/latest/rules/no-confusing-arrow
+         * https://v4.eslint.style/rules/default/no-confusing-arrow
          */
-        'no-confusing-arrow': [
+        '@stylistic/no-confusing-arrow': [
             'error',
             {
                 allowParens: true,
@@ -572,28 +741,11 @@ const es5Config = {
         ],
 
         /*
-         * Allow fall-through on `case` statements in a `switch`.
-         *
-         * This is normally disabled by the recommended ESLint rules. We enable
-         * it, but only if the `case` is empty or contains a comment with the
-         * regex `/falls?\s?through/i`.
-         *
-         * https://eslint.org/docs/latest/rules/no-fallthrough
-         */
-        'no-fallthrough': [
-            'error',
-            {
-                allowEmptyCase: true,
-                commentPattern: noFallThroughPattern,
-            },
-        ],
-
-        /*
          * Disallow allow mixing of spaces and tabs.
          *
-         * https://eslint.org/docs/latest/rules/no-mixed-spaces-and-tabs
+         * https://v4.eslint.style/rules/default/no-mixed-spaces-and-tabs
          */
-        'no-mixed-spaces-and-tabs': 'error',
+        '@stylistic/no-mixed-spaces-and-tabs': 'error',
 
         /*
          * Warn if multiple spaces are found, except for indentation and
@@ -607,9 +759,9 @@ const es5Config = {
          *
          *     var a  =  1  +  2;  // This is not okay.
          *
-         * https://eslint.org/docs/latest/rules/no-multi-spaces
+         * https://v4.eslint.style/rules/default/no-multi-spaces
          */
-        'no-multi-spaces': [
+        '@stylistic/no-multi-spaces': [
             'warn',
             {
                 ignoreEOLComments: true,
@@ -622,9 +774,9 @@ const es5Config = {
          * Only one empty line is allowed at the start of the file. None are
          * allowed at the end.
          *
-         * https://eslint.org/docs/latest/rules/no-multiple-empty-lines
+         * https://v4.eslint.style/rules/default/no-multiple-empty-lines
          */
-        'no-multiple-empty-lines': [
+        '@stylistic/no-multiple-empty-lines': [
             'error',
             {
                 'max': 2,
@@ -634,51 +786,25 @@ const es5Config = {
         ],
 
         /*
-         * Allow Object.prototype builtins, like `.hasOwnProperty()`.
-         *
-         * Normally, ESLint disables these builtins, because they can be
-         * a security issue if parsing unsafe JSON input from another
-         * place, but we currently need these. We may go back to defaults
-         * in the future.
-         *
-         * https://eslint.org/docs/latest/rules/no-prototype-builtins
-         */
-        'no-prototype-builtins': 'off',
-
-        /*
          * Disallow tabs.
          *
-         * https://eslint.org/docs/latest/rules/no-tabs
+         * https://v4.eslint.style/rules/default/no-tabs
          */
-        'no-tabs': 'error',
+        '@stylistic/no-tabs': 'error',
 
         /*
          * Disallow trailing spaces.
          *
-         * https://eslint.org/docs/latest/rules/no-trailing-spaces
+         * https://v4.eslint.style/rules/default/no-trailing-spaces
          */
-        'no-trailing-spaces': 'error',
-
-        /*
-         * Warn if there are any unused variables defined in the scope. This
-         * won't apply to function arguments.
-         *
-         * https://eslint.org/docs/latest/rules/no-unused-vars
-         */
-        'no-unused-vars': [
-            'error',
-            {
-                args: 'none',
-                vars: 'local',
-            },
-        ],
+        '@stylistic/no-trailing-spaces': 'error',
 
         /*
          * Require blank lines in specific places.
          *
-         * https://eslint.org/docs/latest/rules/padding-line-between-statements
+         * https://v4.eslint.style/rules/default/padding-line-between-statements
          */
-        'padding-line-between-statements': [
+        '@stylistic/padding-line-between-statements': [
             'error',
 
             /*
@@ -821,9 +947,9 @@ const es5Config = {
          * Template literals are NOT allowed here. The ES6 rule will turn
          * them on.
          *
-         * https://eslint.org/docs/latest/rules/quotes
+         * https://v4.eslint.style/rules/default/quotes
          */
-        'quotes': [
+        '@stylistic/quotes': [
             'error',
             'single',
             {
@@ -834,49 +960,11 @@ const es5Config = {
         /*
          * Require semicolons at the end of lines.
          *
-         * https://eslint.org/docs/latest/rules/semi
+         * https://v4.eslint.style/rules/default/semi
          */
-        'semi': [
+        '@stylistic/semi': [
             'error',
             'always',
-        ],
-
-        /*
-         * Warn if keys aren't sorted in objects.
-         *
-         * Sorting takes place in consecutive lists of keys. Groups of keys
-         * can be separated by blank lines. Sorting then happens within each
-         * group.
-         *
-         * For example:
-         *
-         *     var o = {
-         *         a: 1,
-         *         b: 2,
-         *         z: 3,
-         *
-         *         c: 4,
-         *         h: 5
-         *     };
-         *
-         * Not:
-         *
-         *     var o = {
-         *         z: 3,
-         *         a: 1,
-         *         b: 2,
-         *         h: 5,
-         *         c: 4
-         *     };
-         *
-         * https://eslint.org/docs/latest/rules/sort-keys
-         */
-        'sort-keys': [
-            'warn',
-            'asc',
-            {
-                allowLineSeparatedGroups: true,
-            },
         ],
 
         /*
@@ -890,9 +978,9 @@ const es5Config = {
          *
          *     myFunc( a, b );
          *
-         * https://eslint.org/docs/latest/rules/space-in-parens
+         * https://v4.eslint.style/rules/default/space-in-parens
          */
-        'space-in-parens': [
+        '@stylistic/space-in-parens': [
             'error',
             'never',
         ],
@@ -914,9 +1002,9 @@ const es5Config = {
          *     //This is a comment.
          *     /*This is another ...
          *
-         * https://eslint.org/docs/latest/rules/spaced-comment
+         * https://v4.eslint.style/rules/default/spaced-comment
          */
-        'spaced-comment': [
+        '@stylistic/spaced-comment': [
             'error',
             'always',
             {
@@ -926,23 +1014,6 @@ const es5Config = {
                 exceptions: ['*', '-', '/'],
                 markers: ['/'],
             },
-        ],
-
-        /*
-         * Disallow inverse comparisons where the variable is on the right-hand
-         * side.
-         *
-         * For example:
-         *
-         *     if (myVar === 1) { ... }
-         *
-         * Not:
-         *
-         *     if (1 === myVar) { ... }
-         */
-        'yoda': [
-            'error',
-            'never',
         ],
     },
 };
@@ -973,62 +1044,6 @@ const es6Config = {
     },
 
     rules: {
-        /*
-         * Require trailing commas on multi-line statements (only).
-         *
-         * This is optional for multi-line functions and calls (for example,
-         * we'd want them for typed functions in TypeScript, but shouldn't
-         * always require them.
-         *
-         * For example:
-         *
-         *     const a = [1, 2, 3];
-         *     const b = [
-         *         1,
-         *         2,
-         *         3,
-         *     ];
-         *     const o = {
-         *         key: 'value',
-         *     };
-         *
-         *     function myFunc(
-         *         a,
-         *         b,
-         *         c,
-         *     ) {
-         *         ...
-         *     }
-         *
-         * Not:
-         *
-         *     const a = [1, 2, 3,];
-         *     const b = [
-         *         1,
-         *         2,
-         *         3
-         *     ];
-         *     const o = {
-         *         key: 'value'
-         *     };
-         *
-         *     function myFunc(a, b, c,) {
-         *         ...
-         *     }
-         *
-         * https://eslint.org/docs/latest/rules/comma-dangle
-         */
-        'comma-dangle': [
-            'error',
-            {
-                arrays: 'always-multiline',
-                exports: 'always-multiline',
-                functions: 'only-multiline',
-                imports: 'always-multiline',
-                objects: 'always-multiline',
-            },
-        ],
-
         /*
          * Require `const` or `let`, not `var`.
          *
@@ -1081,6 +1096,7 @@ const typescriptConfig = {
     parser: '@typescript-eslint/parser',
 
     plugins: [
+        '@stylistic',
         '@typescript-eslint',
     ],
 
@@ -1092,93 +1108,6 @@ const typescriptConfig = {
          * disallow it. We convert to a warning, to help port legacy code.
          */
         '@typescript-eslint/no-this-alias': 'warn',
-
-        /*
-         * Turn off the basic JS lines-around-comment.
-         */
-        'lines-around-comment': 'off',
-
-        /*
-         * Warn on blank lines before the start of comments (single or
-         * multi-line), except at the start of blocks.
-         *
-         * For example:
-         *
-         *     {
-         *         // A thing.
-         *         foo();
-         *
-         *         // Another thing.
-         *         bar();
-         *     }
-         *
-         * Not:
-         *
-         *     {
-         *         // A thing.
-         *         foo();
-         *         // Another thing.
-         *         bar();
-         *     }
-         *
-         * https://eslint.org/docs/latest/rules/lines-around-comment
-         */
-        '@typescript-eslint/lines-around-comment': [
-            'warn',
-            {
-                beforeBlockComment: true,
-                beforeLineComment: true,
-
-                allowArrayEnd: true,
-                allowArrayStart: true,
-
-                allowBlockEnd: true,
-                allowBlockStart: true,
-
-                allowClassEnd: true,
-                allowClassStart: true,
-
-                allowEnumEnd: true,
-                allowEnumStart: true,
-
-                allowInterfaceEnd: true,
-                allowInterfaceStart: true,
-
-                allowModuleEnd: true,
-                allowModuleStart: true,
-
-                allowObjectEnd: true,
-                allowObjectStart: true,
-
-                allowTypeEnd: true,
-                allowTypeStart: true,
-
-                /*
-                 * Special comments used for other purposes.
-                 *
-                 * We actually set this one to avoid issues with the
-                 * "falls through" regex for `case` statements in `switch`
-                 * (see the `no-fallthrough` rule).
-                 */
-                ignorePattern: noFallThroughPattern,
-            },
-        ],
-
-        /*
-         * Turn off the basic JS no-unused-vars.
-         */
-        'no-unused-vars': 'off',
-
-        /*
-         * TS-specific unused vars config.
-         */
-        '@typescript-eslint/no-unused-vars': [
-            'error',
-            {
-                args: 'none',
-                vars: 'local',
-            },
-        ],
     },
 };
 

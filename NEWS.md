@@ -1,5 +1,10 @@
 # Beanbag-ESLint-Plugin Releases
 
+## Version 3.0.0 (TBD)
+
+* Updated for ESLint 9.x.
+
+
 ## Version 2.0.1 (1-April-2024)
 
 * Triple-slash comments (used for TypeScript) no longer trigger a lint warning.
