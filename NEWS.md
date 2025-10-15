@@ -1,6 +1,14 @@
 # Beanbag-ESLint-Plugin Releases
 
-## Version 3.0.0 (TBD)
+## Version 4.0.0 (TBD)
+
+* Changed the provided configurations to be ESLint 9+ flat configs, no longer
+  requiring the legacy compat adapter for use.
+
+* Added TypeScript definitions to the build.
+
+
+## Version 3.0.0 (8-October-2025)
 
 * Updated for ESLint 9.x.
 

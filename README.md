@@ -22,62 +22,70 @@ npm install --save-dev @beanbag/eslint-plugin
 
 There are several configurations and environments provided by the plugin, but
 we recommend starting with the `@beanbag/recommended` configuration. This can
-be enabled in your `.eslintrc` file:
+be enabled in your `eslint.config.mjs` file:
 
-```json
-{
-    "plugins": ["@beanbag"],
-    "extends": [
-        "plugin:@beanbag/recommended"
-    ]
-}
+```js
+import beanbag from '@beanbag/eslint-plugin';
+import { defineConfig } from 'eslint/config';
+
+
+export default defineConfig([
+    beanbag.configs.recommended,
+    {
+        plugins: {
+            '@beanbag': beanbag,
+        },
+    },
+]);
 ```
 
 
 ## Configurations
 
-### @beanbag/recommended
+### beanbag.configs.recommended
 
 This ruleset automatically enables the following additional configurations:
 
-* `@beanbag/es5`: ES5 rules for `*.js` files
-* `@beanbag/es6`: ES6 rules for `*.es6.js` files
-* `@beanbag/typescript`: TypeScript rules for `*.ts` files
+* `beanbag.configs.es5`: ES5 rules for `*.js` files.
+* `beanbag.configs.es6`: ES6 rules for `*.es6.js` files.
+* `beanbag.configs.typescript`: TypeScript rules for `*.ts` files.
+* `beanbag.configs.jsx`: Rules for JSX files.
+* `beanbag.configs.jasmine`: Rules for Jasmine test suites.
+* `beanbag.configs.storybook`: Rules for Storybook stories.
 
 
-### @beanbag/es5
+### beanbag.configs.es5
 
 A set of default rules for all JavaScript/TypeScript code, written to be
 aggressively browser-safe.
 
 
-### @beanbag/es6
+### beanbag.configs.es6
 
-A set of rules enabling ES6-level JavaScript code, useful for modern JavaScript
+A set of rules enabling ES6+ JavaScript code, useful for modern JavaScript
 (including code being processed by [Babel](https://babeljs.io/).
 
 
-### @beanbag/typescript
+### beanbag.configs.typescript
 
 A set of rules for developing TypeScript code.
 
 
-## Environments
+## Globals
 
-The following environments are available:
+Several sets of globals are also provided within the plugin. These may be
+already added to `languageOptions` depending on which rulesets are enabled, but
+are also available for your use:
 
-* `@beanbag/backbone`: Records `Backbone` and `_` as read-only globals, for
-  use with [Backbone](https://backbonejs.org/).
+* `beanbag.globals.backbone`: Provides read-only globals configuration for
+  `Backbone` and `_`, for use with [Backbone](https://backbonejs.org/).
 
-* `@beanbag/django`: Records `django`, `gettext`, `gettext_noop`,
-  `interpolate`, `ngettext`, `npgettext`, and `pgettext` as read-only globals,
+* `beanbag.globals.django`: Provides read-only globals for `django`, `gettext`,
+  `gettext_noop`, `interpolate`, `ngettext`, `npgettext`, and `pgettext`,
   for use with [Django](https://www.djangoproject.com/).
 
-* `@beanbag/djblets`: Records `Djblets` as a read-only global, for use with
-  [Djblets](https://github.com/djblets/djblets/).
+* `beanbag.globals.djblets`: Provides a read-only global for `Djblets`, for
+  use with [Djblets](https://github.com/djblets/djblets/).
 
-* `@beanbag/jasmine-suites`: Records `suite` as a read-only global, for use
-  with [jasmine-suites](https://github.com/beanbaginc/jasmine-suites).
-
-* `@beanbag/reviewboard`: Records `RB` as a read-only global, for use in
-  [Review Board](https://github.com/reviewboard/reviewboard) extensions.
+* `beanbag.globals.reviewboard`: Provides a read-only global for `RB` , for
+  use in [Review Board](https://github.com/reviewboard/reviewboard) extensions.

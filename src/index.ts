@@ -1,4 +1,4 @@
-/*
+/**
  * Standard rules for Beanbag JavaScript codebases.
  *
  * This defines standard rules and options we use for testing our codebases.
@@ -6,13 +6,22 @@
  * with in order to be committed to our codebases.
  *
  * Several environments and rules are created to help keep organized. In
- * general, codebases should inherit from our ``@beanbag/recommended`` config.
+ * general, codebases should use plugin.configs.recommended as the base of
+ * their configuration.
  */
 
 'use strict';
 
+import js from '@eslint/js';
+import stylistic from '@stylistic/eslint-plugin';
+import jasmine from 'eslint-plugin-jasmine';
+import { defineConfig } from 'eslint/config';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+
 
 /*
+/**
  * A string regex pattern used for `case` fall-through markers in `switch`.
  *
  * See `lines-around-comment` and `no-fallthrough` rules below.
@@ -20,543 +29,874 @@
 const noFallThroughPattern = '[Ff]alls?\\s?through';
 
 
-/*
+/**
  * Rules for ES5 JavaScript codebases.
  *
  * Note that these do not include ES6 or TypeScript-specific rules. That means
  * trailing commas, for example, are not allowed by default. Those rules are
  * enabled specifically for ES6/TypeScript files.
+ *
+ * Version Changed:
+ *     4.0.0:
+ *     Updated to the new flat-config format.
  */
-const es5Config = {
-    extends: [
-        'eslint:recommended',
-    ],
+const es5Config = defineConfig([
+    js.configs.recommended,
+    {
+        plugins: {
+            '@stylistic': stylistic,
+        },
 
-    plugins: [
-        '@stylistic',
-    ],
+        rules: {
+            /*
+             * Always require braces on statements like `if`. For example:
+             *
+             * For example:
+             *
+             *     if (foo) {
+             *         ...
+             *     }
+             *
+             * Not:
+             *
+             *     if (foo)
+             *         ...
+             *
+             * https://eslint.org/docs/latest/rules/curly
+             */
+            'curly': [
+                'error',
+                'all',
+            ],
 
-    rules: {
-        /*
-         * Always require braces on statements like `if`. For example:
-         *
-         * For example:
-         *
-         *     if (foo) {
-         *         ...
-         *     }
-         *
-         * Not:
-         *
-         *     if (foo)
-         *         ...
-         *
-         * https://eslint.org/docs/latest/rules/curly
-         */
-        'curly': [
-            'error',
-            'all',
-        ],
+            /*
+             * Always require a `default` in a `switch`.
+             *
+             * https://eslint.org/docs/latest/rules/default-case
+             */
+            'default-case': 'error',
 
-        /*
-         * Always require a `default` in a `switch`.
-         *
-         * https://eslint.org/docs/latest/rules/default-case
-         */
-        'default-case': 'error',
+            /*
+             * `default` in a `switch` must be last.
+             *
+             * https://eslint.org/docs/latest/rules/default-case-last
+             */
+            'default-case-last': 'error',
 
-        /*
-         * `default` in a `switch` must be last.
-         *
-         * https://eslint.org/docs/latest/rules/default-case-last
-         */
-        'default-case-last': 'error',
+            /*
+             * Require === and !== instead of == and !=.
+             *
+             * https://eslint.org/docs/latest/rules/eqeqeq
+             */
+            'eqeqeq': [
+                'error',
+                'always',
+            ],
 
-        /*
-         * Require === and !== instead of == and !=.
-         *
-         * https://eslint.org/docs/latest/rules/eqeqeq
-         */
-        'eqeqeq': [
-            'error',
-            'always',
-        ],
+            /*
+             * Allow fall-through on `case` statements in a `switch`.
+             *
+             * This is normally disabled by the recommended ESLint rules. We
+             * enable it, but only if the `case` is empty or contains a comment
+             * with the regex `/falls?\s?through/i`.
+             *
+             * https://eslint.org/docs/latest/rules/no-fallthrough
+             */
+            'no-fallthrough': [
+                'error',
+                {
+                    allowEmptyCase: true,
+                    commentPattern: noFallThroughPattern,
+                },
+            ],
 
-        /*
-         * Allow fall-through on `case` statements in a `switch`.
-         *
-         * This is normally disabled by the recommended ESLint rules. We enable
-         * it, but only if the `case` is empty or contains a comment with the
-         * regex `/falls?\s?through/i`.
-         *
-         * https://eslint.org/docs/latest/rules/no-fallthrough
-         */
-        'no-fallthrough': [
-            'error',
-            {
-                allowEmptyCase: true,
-                commentPattern: noFallThroughPattern,
-            },
-        ],
+            /*
+             * Allow Object.prototype builtins, like `.hasOwnProperty()`.
+             *
+             * Normally, ESLint disables these builtins, because they can be
+             * a security issue if parsing unsafe JSON input from another
+             * place, but we currently need these. We may go back to defaults
+             * in the future.
+             *
+             * https://eslint.org/docs/latest/rules/no-prototype-builtins
+             */
+            'no-prototype-builtins': 'off',
 
-        /*
-         * Allow Object.prototype builtins, like `.hasOwnProperty()`.
-         *
-         * Normally, ESLint disables these builtins, because they can be
-         * a security issue if parsing unsafe JSON input from another
-         * place, but we currently need these. We may go back to defaults
-         * in the future.
-         *
-         * https://eslint.org/docs/latest/rules/no-prototype-builtins
-         */
-        'no-prototype-builtins': 'off',
+            /*
+             * Warn if there are any unused variables defined in the scope.
+             * This won't apply to function arguments.
+             *
+             * https://eslint.org/docs/latest/rules/no-unused-vars
+             */
+            'no-unused-vars': [
+                'error',
+                {
+                    args: 'none',
+                    vars: 'local',
+                },
+            ],
 
-        /*
-         * Warn if there are any unused variables defined in the scope. This
-         * won't apply to function arguments.
-         *
-         * https://eslint.org/docs/latest/rules/no-unused-vars
-         */
-        'no-unused-vars': [
-            'error',
-            {
-                args: 'none',
-                vars: 'local',
-            },
-        ],
+            /*
+             * Warn if keys aren't sorted in objects.
+             *
+             * Sorting takes place in consecutive lists of keys. Groups of keys
+             * can be separated by blank lines. Sorting then happens within
+             * each group.
+             *
+             * For example:
+             *
+             *     var o = {
+             *         a: 1,
+             *         b: 2,
+             *         z: 3,
+             *
+             *         c: 4,
+             *         h: 5
+             *     };
+             *
+             * Not:
+             *
+             *     var o = {
+             *         z: 3,
+             *         a: 1,
+             *         b: 2,
+             *         h: 5,
+             *         c: 4
+             *     };
+             *
+             * https://eslint.org/docs/latest/rules/sort-keys
+             */
+            'sort-keys': [
+                'warn',
+                'asc',
+                {
+                    allowLineSeparatedGroups: true,
+                },
+            ],
 
-        /*
-         * Warn if keys aren't sorted in objects.
-         *
-         * Sorting takes place in consecutive lists of keys. Groups of keys
-         * can be separated by blank lines. Sorting then happens within each
-         * group.
-         *
-         * For example:
-         *
-         *     var o = {
-         *         a: 1,
-         *         b: 2,
-         *         z: 3,
-         *
-         *         c: 4,
-         *         h: 5
-         *     };
-         *
-         * Not:
-         *
-         *     var o = {
-         *         z: 3,
-         *         a: 1,
-         *         b: 2,
-         *         h: 5,
-         *         c: 4
-         *     };
-         *
-         * https://eslint.org/docs/latest/rules/sort-keys
-         */
-        'sort-keys': [
-            'warn',
-            'asc',
-            {
-                allowLineSeparatedGroups: true,
-            },
-        ],
+            /*
+             * Disallow inverse comparisons where the variable is on the
+             * right-hand side.
+             *
+             * For example:
+             *
+             *     if (myVar === 1) { ... }
+             *
+             * Not:
+             *
+             *     if (1 === myVar) { ... }
+             */
+            'yoda': [
+                'error',
+                'never',
+            ],
 
-        /*
-         * Disallow inverse comparisons where the variable is on the right-hand
-         * side.
-         *
-         * For example:
-         *
-         *     if (myVar === 1) { ... }
-         *
-         * Not:
-         *
-         *     if (1 === myVar) { ... }
-         */
-        'yoda': [
-            'error',
-            'never',
-        ],
+            /*
+             * Require space around `=>`.
+             *
+             * For example:
+             *
+             *     func(a => true)
+             *
+             * Not:
+             *
+             *     func(a=>true)
+             *
+             * https://eslint.style/rules/default/arrow-spacing
+             */
+            '@stylistic/arrow-spacing': [
+                'error',
+                {
+                    after: true,
+                    before: true,
+                },
+            ],
 
-        /*
-         * Require space around `=>`.
-         *
-         * For example:
-         *
-         *     func(a => true)
-         *
-         * Not:
-         *
-         *     func(a=>true)
-         *
-         * https://v4.eslint.style/rules/default/arrow-spacing
-         */
-        '@stylistic/arrow-spacing': [
-            'error',
-            {
-                after: true,
-                before: true,
-            },
-        ],
+            /*
+             * Require brace styles in the form of:
+             *
+             *     if (foo) {
+             *         ...
+             *     } else {
+             *         ...
+             *     }
+             *
+             * Single-line inline functions are allowed:
+             *
+             *     array.map(function(a) { return a + 1; });
+             *
+             * https://eslint.style/rules/default/brace-style
+             */
+            '@stylistic/brace-style': [
+                'error',
+                '1tbs',
+                {
+                    allowSingleLine: true,
+                },
+            ],
 
-        /*
-         * Require brace styles in the form of:
-         *
-         *     if (foo) {
-         *         ...
-         *     } else {
-         *         ...
-         *     }
-         *
-         * Single-line inline functions are allowed:
-         *
-         *     array.map(function(a) { return a + 1; });
-         *
-         * https://v4.eslint.style/rules/default/brace-style
-         */
-        '@stylistic/brace-style': [
-            'error',
-            '1tbs',
-            {
-                allowSingleLine: true,
-            },
-        ],
+            /*
+             * Require trailing commas on multi-line statements (only).
+             *
+             * This is optional for multi-line functions and calls (for
+             * example, we'd want them for typed functions in TypeScript, but
+             * shouldn't always require them.
+             *
+             * For example:
+             *
+             *     const a = [1, 2, 3];
+             *     const b = [
+             *         1,
+             *         2,
+             *         3,
+             *     ];
+             *     const o = {
+             *         key: 'value',
+             *     };
+             *
+             *     function myFunc(
+             *         a,
+             *         b,
+             *         c,
+             *     ) {
+             *         ...
+             *     }
+             *
+             * Not:
+             *
+             *     const a = [1, 2, 3,];
+             *     const b = [
+             *         1,
+             *         2,
+             *         3
+             *     ];
+             *     const o = {
+             *         key: 'value'
+             *     };
+             *
+             *     function myFunc(a, b, c,) {
+             *         ...
+             *     }
+             *
+             * https://eslint.style/rules/default/comma-dangle
+             */
+            '@stylistic/comma-dangle': [
+                'error',
+                {
+                    arrays: 'always-multiline',
+                    enums: 'always-multiline',
+                    exports: 'always-multiline',
+                    functions: 'only-multiline',
+                    generics: 'only-multiline',
+                    imports: 'always-multiline',
+                    objects: 'always-multiline',
+                    tuples: 'always-multiline',
+                },
+            ],
 
-        /*
-         * Require trailing commas on multi-line statements (only).
-         *
-         * This is optional for multi-line functions and calls (for example,
-         * we'd want them for typed functions in TypeScript, but shouldn't
-         * always require them.
-         *
-         * For example:
-         *
-         *     const a = [1, 2, 3];
-         *     const b = [
-         *         1,
-         *         2,
-         *         3,
-         *     ];
-         *     const o = {
-         *         key: 'value',
-         *     };
-         *
-         *     function myFunc(
-         *         a,
-         *         b,
-         *         c,
-         *     ) {
-         *         ...
-         *     }
-         *
-         * Not:
-         *
-         *     const a = [1, 2, 3,];
-         *     const b = [
-         *         1,
-         *         2,
-         *         3
-         *     ];
-         *     const o = {
-         *         key: 'value'
-         *     };
-         *
-         *     function myFunc(a, b, c,) {
-         *         ...
-         *     }
-         *
-         * https://v4.eslint.style/rules/default/comma-dangle
-         */
-        '@stylistic/comma-dangle': [
-            'error',
-            {
-                arrays: 'always-multiline',
-                enums: 'always-multiline',
-                exports: 'always-multiline',
-                functions: 'only-multiline',
-                generics: 'only-multiline',
-                imports: 'always-multiline',
-                objects: 'always-multiline',
-                tuples: 'always-multiline',
-            },
-        ],
+            /*
+             * Require spaces after a comma, but disallow it before.
+             *
+             * For example:
+             *
+             *     a, b, c
+             *
+             * Not:
+             *
+             *     a ,b ,c
+             *
+             * https://eslint.style/rules/default/comma-spacing
+             */
+            '@stylistic/comma-spacing': [
+                'error',
+                {
+                    after: true,
+                    before: false,
+                },
+            ],
 
-        /*
-         * Require spaces after a comma, but disallow it before.
-         *
-         * For example:
-         *
-         *     a, b, c
-         *
-         * Not:
-         *
-         *     a ,b ,c
-         *
-         * https://v4.eslint.style/rules/default/comma-spacing
-         */
-        '@stylistic/comma-spacing': [
-            'error',
-            {
-                after: true,
-                before: false,
-            },
-        ],
+            /*
+             * Require commas at the end of a line, not before.
+             *
+             * For example:
+             *
+             *     [
+             *         1,
+             *         2,
+             *         3,
+             *     ]
+             *
+             * Not:
+             *
+             *     [
+             *         1
+             *     ,   2
+             *     ,   3
+             *     ]
+             *
+             * https://eslint.style/rules/default/comma-style
+             */
+            '@stylistic/comma-style': [
+                'error',
+                'last',
+            ],
 
-        /*
-         * Require commas at the end of a line, not before.
-         *
-         * For example:
-         *
-         *     [
-         *         1,
-         *         2,
-         *         3,
-         *     ]
-         *
-         * Not:
-         *
-         *     [
-         *         1
-         *     ,   2
-         *     ,   3
-         *     ]
-         *
-         * https://v4.eslint.style/rules/default/comma-style
-         */
-        '@stylistic/comma-style': [
-            'error',
-            'last',
-        ],
+            /*
+             * Disallow spaces before parens in function calls.
+             *
+             * For example:
+             *
+             *     foo()
+             *
+             * Not:
+             *
+             *     foo ()
+             *
+             * https://eslint.style/rules/default/function-call-spacing
+             */
+            '@stylistic/function-call-spacing': [
+                'error',
+                'never',
+            ],
 
-        /*
-         * Disallow spaces before parens in function calls.
-         *
-         * For example:
-         *
-         *     foo()
-         *
-         * Not:
-         *
-         *     foo ()
-         *
-         * https://v4.eslint.style/rules/default/function-call-spacing
-         */
-        '@stylistic/function-call-spacing': [
-            'error',
-            'never',
-        ],
+            /*
+             * Rules for managing indentation.
+             *
+             * https://eslint.style/rules/default/indent
+             */
+            '@stylistic/indent': [
+                'error',
+                4,  // 4-space indentation
+                {
+                    /*
+                     * All items within an array definition must be aligned
+                     * with the first item on the first line.
+                     *
+                     * For example:
+                     *
+                     *     var a = [ 1, 2, 3
+                     *               4, 5, 6 ];
+                     *
+                     *     var b = [
+                     *         1,
+                     *         2,
+                     *         3
+                     *     ];
+                     *
+                     * Not:
+                     *
+                     *     var a = [ 1, 2, 3,
+                     *         4, 5, 6 ];
+                     *
+                     *     var b = [
+                     *         1,
+                     *             2,
+                     *             3
+                     *     ];
+                     */
+                    'ArrayExpression': 'first',
 
-        /*
-         * Rules for managing indentation.
-         *
-         * https://v4.eslint.style/rules/default/indent
-         */
-        '@stylistic/indent': [
-            'error',
-            4,  // 4-space indentation
-            {
+                    /*
+                     * All arguments in function calls must be aligned with the
+                     * first argument on the first line.
+                     *
+                     * For example:
+                     *
+                     *     myFunc1(a, b, c,
+                     *             d, e, f);
+                     *
+                     *     myFunc2(
+                     *         a, b, c,
+                     *         d, e, f
+                     *     );
+                     *
+                     * Not:
+                     *
+                     *     myFunc1(a, b, c,
+                     *         d, e, f);
+                     *
+                     *     myFunc2(
+                     *         a, b, c,
+                     *             d, e, f);
+                     */
+                    'CallExpression': {
+                        arguments: 'first',
+                    },
+
+                    /*
+                     * All parameters in function declarations must be aligned
+                     * with the parameter on the first line.
+                     *
+                     * For example:
+                     *
+                     *     function myFunc1(a, b, c,
+                     *                      d, e, f) {
+                     *         ...
+                     *     }
+                     *
+                     *     function myFunc2(
+                     *         a,
+                     *         b,
+                     *         c
+                     *     ) {
+                     *         ...
+                     *     }
+                     *
+                     * Not:
+                     *
+                     *     function myFunc1(a, b, c,
+                     *         d, e, f) {
+                     *         ...
+                     *     }
+                     *
+                     *     function myFunc2(
+                     *         a,
+                     *             b,
+                     *             c
+                     *     ) {
+                     *         ...
+                     *     }
+                     */
+                    'FunctionDeclaration': {
+                        body: 1,
+                        parameters: 'first',
+                    },
+
+                    /*
+                     * All parameters in function expressions must be aligned
+                     * with the parameter on the first line.
+                     *
+                     * For example:
+                     *
+                     *     var myFunc1 = function(a, b, c,
+                     *                            d, e, f) {
+                     *         ...
+                     *     }
+                     *
+                     *     var myFunc2 = function(
+                     *         a,
+                     *         b,
+                     *         c
+                     *     ) {
+                     *         ...
+                     *     }
+                     *
+                     * Not:
+                     *
+                     *     var myFunc1 = function(a, b, c,
+                     *         d, e, f) {
+                     *         ...
+                     *     };
+                     *
+                     *     var myFunc2 = function(
+                     *         a,
+                     *             b,
+                     *             c
+                     *     ) {
+                     *         ...
+                     *     };
+                     */
+                    'FunctionExpression': {
+                        body: 1,
+                        parameters: 'first',
+                    },
+
+                    /*
+                     * All imports must either fit on one line, or be indented
+                     * one level from the statement.
+                     *
+                     * For example:
+                     *
+                     *     import { a, b, c } from 'module';
+                     *
+                     *     import {
+                     *         x,
+                     *         y,
+                     *         z,
+                     *     } from 'module';
+                     *
+                     * Not:
+                     *
+                     *     import { a, b,
+                     *              c } from 'module';
+                     *
+                     *     import {
+                     *         x,
+                     *             y,
+                     *             z,
+                     *     } from 'module';
+                     *
+                     * NOTE: This is here instead of in the ES6 ruleset so we
+                     *       don't have to override all of indent's config.
+                     */
+                    'ImportDeclaration': 1,
+
+                    /*
+                     * Disable checking indentation when chaining.
+                     *
+                     * Ideally we would check, but this doesn't do well with
+                     * the following situation:
+                     *
+                     *     $foo.find('...')
+                     *         .children('...')
+                     *             .doAThing()
+                     *         .end()
+                     *         .doSomethingElse();
+                     *
+                     * So we just disable it.
+                     */
+                    'MemberExpression': 'off',
+
+                    /*
+                     * All keys within an object definition must be aligned
+                     * with the key on the first line.
+                     *
+                     * For example:
+                     *
+                     *     var o = [
+                     *         key1: 1,
+                     *         key2: 2
+                     *     ];
+                     *
+                     * Not:
+                     *
+                     *     var o = { key1: 1,
+                     *         key2: 2
+                     *     };
+                     */
+                    'ObjectExpression': 'first',
+
+                    /*
+                     * `case` statements in a `switch` must be indented one
+                     * level.
+                     *
+                     * For example:
+                     *
+                     *     switch (a) {
+                     *         case 1:
+                     *             break;
+                     *
+                     *         default:
+                     *             break;
+                     *     }
+                     *
+                     * Not:
+                     *
+                     *     switch (a) {
+                     *     case 1:
+                     *         break;
+                     *
+                     *     default:
+                     *         break;
+                     *     }
+                     */
+                    'SwitchCase': 1,
+
+                    'ignoredNodes': [
+                        /*
+                         * Ignore indentation rules for ternary expressions.
+                         *
+                         * We don't get much control over these in ESLint, and
+                         * it's better just to turn this rule off.
+                         */
+                        'ConditionalExpression',
+
+                        /*
+                         * Ignore indentation rules for template literals.
+                         *
+                         * In more complex template literals where embedded
+                         * data may span multiple lines, it's more likely than
+                         * not that the embedded content would be best indented
+                         * relative to some string content in the template. We
+                         * disable indentation rules to help enable this.
+                         */
+                        'TemplateLiteral > *',
+
+                        /*
+                         * Ignore indentation rules for TypeScript generics.
+                         */
+                        'TSTypeParameterInstantiation',
+                        'TSTypeParameterDeclaration',
+                        'TSTypeAnnotation',
+                        'ClassDeclaration > CallExpression.superClass',
+                    ],
+
+                    /*
+                     * Disable indentation within global (function() { ...})()
+                     * IIFE closures.
+                     */
+                    'outerIIFEBody': 0,
+                },
+            ],
+
+            /*
+             * Require UNIX-style line breaks.
+             *
+             * https://eslint.style/rules/default/linebreak-style
+             */
+            '@stylistic/linebreak-style': [
+                'error',
+                'unix',
+            ],
+
+            /*
+             * Warn on blank lines before the start of comments (single or
+             * multi-line), except at the start of blocks.
+             *
+             * For example:
+             *
+             *     {
+             *         // A thing.
+             *         foo();
+             *
+             *         // Another thing.
+             *         bar();
+             *     }
+             *
+             * Not:
+             *
+             *     {
+             *         // A thing.
+             *         foo();
+             *         // Another thing.
+             *         bar();
+             *     }
+             *
+             * https://eslint.style/rules/default/lines-around-comment
+             */
+            '@stylistic/lines-around-comment': [
+                'warn',
+                {
+                    beforeBlockComment: true,
+                    beforeLineComment: true,
+
+                    allowArrayEnd: true,
+                    allowArrayStart: true,
+
+                    allowBlockEnd: true,
+                    allowBlockStart: true,
+
+                    allowClassEnd: true,
+                    allowClassStart: true,
+
+                    allowEnumEnd: true,
+                    allowEnumStart: true,
+
+                    allowInterfaceEnd: true,
+                    allowInterfaceStart: true,
+
+                    allowModuleEnd: true,
+                    allowModuleStart: true,
+
+                    allowObjectEnd: true,
+                    allowObjectStart: true,
+
+                    allowTypeEnd: true,
+                    allowTypeStart: true,
+
+                    /*
+                     * Special comments used for other purposes.
+                     *
+                     * We actually set this one to avoid issues with the
+                     * "falls through" regex for `case` statements in `switch`
+                     * (see the `no-fallthrough` rule).
+                     */
+                    ignorePattern: noFallThroughPattern,
+                },
+            ],
+
+            /*
+             * Enforce a maximum line length, except for gettext()-localized
+             * strings or lines with long URLs.
+             *
+             * https://eslint.style/rules/default/max-len
+             */
+            '@stylistic/max-len': [
+                'error',
+                {
+                    code: 79,
+                    ignorePattern: 'gettext\\(.*',
+                    ignoreUrls: true,
+                },
+            ],
+
+            /*
+             * [Future] This doesn't play well with `spaced-comment` currently.
+             *
+             * Require multi-line comments to align all `*`'s.
+             *
+             * https://eslint.style/rules/default/multiline-comment-style
+             */
+            /*
+            'multiline-comment-style': [
+                'error',
+                'starred-block',
+            ],
+            */
+
+            /*
+             * Disallow expressions where `=>` usage can lead to confusing
+             * code.
+             *
+             * For example:
+             *
+             *     var x = a => (1 ? 2 : 3);
+             *
+             * Not:
+             *
+             *     var x = a => 1 ? 2 : 3;
+             *
+             * https://eslint.style/rules/default/no-confusing-arrow
+             */
+            '@stylistic/no-confusing-arrow': [
+                'error',
+                {
+                    allowParens: true,
+                },
+            ],
+
+            /*
+             * Disallow allow mixing of spaces and tabs.
+             *
+             * https://eslint.style/rules/default/no-mixed-spaces-and-tabs
+             */
+            '@stylistic/no-mixed-spaces-and-tabs': 'error',
+
+            /*
+             * Warn if multiple spaces are found, except for indentation and
+             * before inline comments.
+             *
+             * For example:
+             *
+             *     var a = 1 + 2;  // This is okay.
+             *
+             * Not:
+             *
+             *     var a  =  1  +  2;  // This is not okay.
+             *
+             * https://eslint.style/rules/default/no-multi-spaces
+             */
+            '@stylistic/no-multi-spaces': [
+                'warn',
+                {
+                    ignoreEOLComments: true,
+                },
+            ],
+
+            /*
+             * Disallow more than 2 consecutive empty lines.
+             *
+             * Only one empty line is allowed at the start of the file. None
+             * are allowed at the end.
+             *
+             * https://eslint.style/rules/default/no-multiple-empty-lines
+             */
+            '@stylistic/no-multiple-empty-lines': [
+                'error',
+                {
+                    'max': 2,
+                    'maxBOF': 1,
+                    'maxEOF': 0,
+                },
+            ],
+
+            /*
+             * Disallow tabs.
+             *
+             * https://eslint.style/rules/default/no-tabs
+             */
+            '@stylistic/no-tabs': 'error',
+
+            /*
+             * Disallow trailing spaces.
+             *
+             * https://eslint.style/rules/default/no-trailing-spaces
+             */
+            '@stylistic/no-trailing-spaces': 'error',
+
+            /*
+             * Require blank lines in specific places.
+             *
+             * https://eslint.style/rules/default/padding-line-between-statements
+             */
+            '@stylistic/padding-line-between-statements': [
+                'error',
+
                 /*
-                 * All items within an array definition must be aligned with
-                 * the first item on the first line.
+                 * Require a blank line between statements and blocks, or
+                 * blocks and blocks.
                  *
                  * For example:
                  *
-                 *     var a = [ 1, 2, 3
-                 *               4, 5, 6 ];
+                 *     class MyClass() {}
                  *
-                 *     var b = [
-                 *         1,
-                 *         2,
-                 *         3
-                 *     ];
+                 *     function foo() {
+                 *         ...
+                 *     }
                  *
-                 * Not:
+                 *     {
+                 *         ...
+                 *     }
                  *
-                 *     var a = [ 1, 2, 3,
-                 *         4, 5, 6 ];
+                 *     if (bar) {
+                 *         ...
+                 *     }
                  *
-                 *     var b = [
-                 *         1,
-                 *             2,
-                 *             3
-                 *     ];
-                 */
-                'ArrayExpression': 'first',
-
-                /*
-                 * All arguments in function calls must be aligned with the
-                 * first argument on the first line.
-                 *
-                 * For example:
-                 *
-                 *     myFunc1(a, b, c,
-                 *             d, e, f);
-                 *
-                 *     myFunc2(
-                 *         a, b, c,
-                 *         d, e, f
-                 *     );
+                 *     foo();
                  *
                  * Not:
                  *
-                 *     myFunc1(a, b, c,
-                 *         d, e, f);
-                 *
-                 *     myFunc2(
-                 *         a, b, c,
-                 *             d, e, f);
+                 *     class MyClass() {}
+                 *     function foo() {
+                 *         ...
+                 *     }
+                 *     {
+                 *         ...
+                 *     }
+                 *     if (bar) {
+                 *         ...
+                 *     }
+                 *     foo();
                  */
-                'CallExpression': {
-                    arguments: 'first',
+                {
+                    blankLine: 'always',
+                    next: ['block-like', 'class', 'function'],
+                    prev: '*',
+                },
+                {
+                    blankLine: 'always',
+                    next: '*',
+                    prev: ['block-like', 'class', 'function'],
                 },
 
                 /*
-                 * All parameters in function declarations must be aligned
-                 * with the parameter on the first line.
+                 * Require a blank line between statements and any following
+                 * variables.
                  *
                  * For example:
                  *
-                 *     function myFunc1(a, b, c,
-                 *                      d, e, f) {
-                 *         ...
-                 *     }
+                 *     myFunc();
                  *
-                 *     function myFunc2(
-                 *         a,
-                 *         b,
-                 *         c
-                 *     ) {
-                 *         ...
-                 *     }
+                 *     const a = 1;
+                 *     let b = 2;
+                 *     var c = 3;
                  *
                  * Not:
                  *
-                 *     function myFunc1(a, b, c,
-                 *         d, e, f) {
-                 *         ...
-                 *     }
-                 *
-                 *     function myFunc2(
-                 *         a,
-                 *             b,
-                 *             c
-                 *     ) {
-                 *         ...
-                 *     }
+                 *     myFunc();
+                 *     const a = 1;
+                 *     let b = 2;
+                 *     var c = 3;
                  */
-                'FunctionDeclaration': {
-                    body: 1,
-                    parameters: 'first',
+                {
+                    blankLine: 'any',
+                    next: ['const', 'let', 'var'],
+                    prev: '*',
                 },
 
                 /*
-                 * All parameters in function expressions must be aligned
-                 * with the parameter on the first line.
-                 *
-                 * For example:
-                 *
-                 *     var myFunc1 = function(a, b, c,
-                 *                            d, e, f) {
-                 *         ...
-                 *     }
-                 *
-                 *     var myFunc2 = function(
-                 *         a,
-                 *         b,
-                 *         c
-                 *     ) {
-                 *         ...
-                 *     }
-                 *
-                 * Not:
-                 *
-                 *     var myFunc1 = function(a, b, c,
-                 *         d, e, f) {
-                 *         ...
-                 *     };
-                 *
-                 *     var myFunc2 = function(
-                 *         a,
-                 *             b,
-                 *             c
-                 *     ) {
-                 *         ...
-                 *     };
-                 */
-                'FunctionExpression': {
-                    body: 1,
-                    parameters: 'first',
-                },
-
-                /*
-                 * All imports must either fit on one line, or be indented one
-                 * level from the statement.
-                 *
-                 * For example:
-                 *
-                 *     import { a, b, c } from 'module';
-                 *
-                 *     import {
-                 *         x,
-                 *         y,
-                 *         z,
-                 *     } from 'module';
-                 *
-                 * Not:
-                 *
-                 *     import { a, b,
-                 *              c } from 'module';
-                 *
-                 *     import {
-                 *         x,
-                 *             y,
-                 *             z,
-                 *     } from 'module';
-                 *
-                 * NOTE: This is here instead of in the ES6 ruleset so we
-                 *       don't have to override all of indent's config.
-                 */
-                'ImportDeclaration': 1,
-
-                /*
-                 * Disable checking indentation when chaining.
-                 *
-                 * Ideally we would check, but this doesn't do well with the
-                 * following situation:
-                 *
-                 *     $foo.find('...')
-                 *         .children('...')
-                 *             .doAThing()
-                 *         .end()
-                 *         .doSomethingElse();
-                 *
-                 * So we just disable it.
-                 */
-                'MemberExpression': 'off',
-
-                /*
-                 * All keys within an object definition must be aligned with
-                 * the key on the first line.
-                 *
-                 * For example:
-                 *
-                 *     var o = [
-                 *         key1: 1,
-                 *         key2: 2
-                 *     ];
-                 *
-                 * Not:
-                 *
-                 *     var o = { key1: 1,
-                 *         key2: 2
-                 *     };
-                 */
-                'ObjectExpression': 'first',
-
-                /*
-                 * `case` statements in a `switch` must be indented one level.
+                 * Require a blank line between `break` and `case` in a
+                 * `switch`.
                  *
                  * For example:
                  *
@@ -564,462 +904,139 @@ const es5Config = {
                  *         case 1:
                  *             break;
                  *
-                 *         default:
+                 *         case 2:
+                 *             // Fall through.
+                 *
+                 *         case 3:
                  *             break;
+                 *
+                 *         ...
                  *     }
                  *
                  * Not:
                  *
                  *     switch (a) {
-                 *     case 1:
-                 *         break;
-                 *
-                 *     default:
-                 *         break;
+                 *         case 1:
+                 *             break;
+                 *         case 2:
+                 *         case 3:
+                 *             break;
+                 *         ...
                  *     }
-                 */
-                'SwitchCase': 1,
-
-                'ignoredNodes': [
-                    /*
-                     * Ignore indentation rules for ternary expressions.
-                     *
-                     * We don't get much control over these in ESLint, and it's
-                     * better just to turn this rule off.
-                     */
-                    'ConditionalExpression',
-
-                    /*
-                     * Ignore indentation rules for template literals.
-                     *
-                     * In more complex template literals where embedded data
-                     * may span multiple lines, it's more likely than not
-                     * that the embedded content would be best indented
-                     * relative to some string content in the template. We
-                     * disable indentation rules to help enable this.
-                     */
-                    'TemplateLiteral > *',
-
-                    /*
-                     * Ignore indentation rules for TypeScript generics.
-                     */
-                    'TSTypeParameterInstantiation',
-                    'TSTypeAnnotation',
-                ],
-
-                /*
-                 * Disable indentation within global (function() { ...})()
-                 * IIFE closures.
-                 */
-                'outerIIFEBody': 0,
-            },
-        ],
-
-        /*
-         * Require UNIX-style line breaks.
-         *
-         * https://v4.eslint.style/rules/default/linebreak-style
-         */
-        '@stylistic/linebreak-style': [
-            'error',
-            'unix',
-        ],
-
-        /*
-         * Warn on blank lines before the start of comments (single or
-         * multi-line), except at the start of blocks.
-         *
-         * For example:
-         *
-         *     {
-         *         // A thing.
-         *         foo();
-         *
-         *         // Another thing.
-         *         bar();
-         *     }
-         *
-         * Not:
-         *
-         *     {
-         *         // A thing.
-         *         foo();
-         *         // Another thing.
-         *         bar();
-         *     }
-         *
-         * https://v4.eslint.style/rules/default/lines-around-comment
-         */
-        '@stylistic/lines-around-comment': [
-            'warn',
-            {
-                beforeBlockComment: true,
-                beforeLineComment: true,
-
-                allowArrayEnd: true,
-                allowArrayStart: true,
-
-                allowBlockEnd: true,
-                allowBlockStart: true,
-
-                allowClassEnd: true,
-                allowClassStart: true,
-
-                allowEnumEnd: true,
-                allowEnumStart: true,
-
-                allowInterfaceEnd: true,
-                allowInterfaceStart: true,
-
-                allowModuleEnd: true,
-                allowModuleStart: true,
-
-                allowObjectEnd: true,
-                allowObjectStart: true,
-
-                allowTypeEnd: true,
-                allowTypeStart: true,
-
-                /*
-                 * Special comments used for other purposes.
                  *
-                 * We actually set this one to avoid issues with the
-                 * "falls through" regex for `case` statements in `switch`
-                 * (see the `no-fallthrough` rule).
+                 * NOTE: Ideally we wouldn't have a blank line between
+                 *       fall-through `case` statements, but that's not an
+                 *       option. This at least encourages us to document the
+                 *       fall-through explicitly.
                  */
-                ignorePattern: noFallThroughPattern,
-            },
-        ],
-
-        /*
-         * Enforce a maximum line length, except for gettext()-localized
-         * strings or lines with long URLs.
-         *
-         * https://v4.eslint.style/rules/default/max-len
-         */
-        '@stylistic/max-len': [
-            'error',
-            {
-                code: 79,
-                ignorePattern: 'gettext\\(.*',
-                ignoreUrls: true,
-            },
-        ],
-
-        /*
-         * [Future] This doesn't play well with `spaced-comment` currently.
-         *
-         * Require multi-line comments to align all `*`'s.
-         *
-         * https://v4.eslint.style/rules/default/multiline-comment-style
-         */
-        /*
-        'multiline-comment-style': [
-            'error',
-            'starred-block',
-        ],
-        */
-
-        /*
-         * Disallow expressions where `=>` usage can lead to confusing code.
-         *
-         * For example:
-         *
-         *     var x = a => (1 ? 2 : 3);
-         *
-         * Not:
-         *
-         *     var x = a => 1 ? 2 : 3;
-         *
-         * https://v4.eslint.style/rules/default/no-confusing-arrow
-         */
-        '@stylistic/no-confusing-arrow': [
-            'error',
-            {
-                allowParens: true,
-            },
-        ],
-
-        /*
-         * Disallow allow mixing of spaces and tabs.
-         *
-         * https://v4.eslint.style/rules/default/no-mixed-spaces-and-tabs
-         */
-        '@stylistic/no-mixed-spaces-and-tabs': 'error',
-
-        /*
-         * Warn if multiple spaces are found, except for indentation and
-         * before inline comments.
-         *
-         * For example:
-         *
-         *     var a = 1 + 2;  // This is okay.
-         *
-         * Not:
-         *
-         *     var a  =  1  +  2;  // This is not okay.
-         *
-         * https://v4.eslint.style/rules/default/no-multi-spaces
-         */
-        '@stylistic/no-multi-spaces': [
-            'warn',
-            {
-                ignoreEOLComments: true,
-            },
-        ],
-
-        /*
-         * Disallow more than 2 consecutive empty lines.
-         *
-         * Only one empty line is allowed at the start of the file. None are
-         * allowed at the end.
-         *
-         * https://v4.eslint.style/rules/default/no-multiple-empty-lines
-         */
-        '@stylistic/no-multiple-empty-lines': [
-            'error',
-            {
-                'max': 2,
-                'maxBOF': 1,
-                'maxEOF': 0,
-            },
-        ],
-
-        /*
-         * Disallow tabs.
-         *
-         * https://v4.eslint.style/rules/default/no-tabs
-         */
-        '@stylistic/no-tabs': 'error',
-
-        /*
-         * Disallow trailing spaces.
-         *
-         * https://v4.eslint.style/rules/default/no-trailing-spaces
-         */
-        '@stylistic/no-trailing-spaces': 'error',
-
-        /*
-         * Require blank lines in specific places.
-         *
-         * https://v4.eslint.style/rules/default/padding-line-between-statements
-         */
-        '@stylistic/padding-line-between-statements': [
-            'error',
-
-            /*
-             * Require a blank line between statements and blocks, or blocks
-             * and blocks.
-             *
-             * For example:
-             *
-             *     class MyClass() {}
-             *
-             *     function foo() {
-             *         ...
-             *     }
-             *
-             *     {
-             *         ...
-             *     }
-             *
-             *     if (bar) {
-             *         ...
-             *     }
-             *
-             *     foo();
-             *
-             * Not:
-             *
-             *     class MyClass() {}
-             *     function foo() {
-             *         ...
-             *     }
-             *     {
-             *         ...
-             *     }
-             *     if (bar) {
-             *         ...
-             *     }
-             *     foo();
-             */
-            {
-                blankLine: 'always',
-                next: ['block-like', 'class', 'function'],
-                prev: '*',
-            },
-            {
-                blankLine: 'always',
-                next: '*',
-                prev: ['block-like', 'class', 'function'],
-            },
-
-            /*
-             * Require a blank line between statements and any following
-             * variables.
-             *
-             * For example:
-             *
-             *     myFunc();
-             *
-             *     const a = 1;
-             *     let b = 2;
-             *     var c = 3;
-             *
-             * Not:
-             *
-             *     myFunc();
-             *     const a = 1;
-             *     let b = 2;
-             *     var c = 3;
-             */
-            {
-                blankLine: 'any',
-                next: ['const', 'let', 'var'],
-                prev: '*',
-            },
-
-            /*
-             * Require a blank line between `break` and `case` in a `switch`.
-             *
-             * For example:
-             *
-             *     switch (a) {
-             *         case 1:
-             *             break;
-             *
-             *         case 2:
-             *             // Fall through.
-             *
-             *         case 3:
-             *             break;
-             *
-             *         ...
-             *     }
-             *
-             * Not:
-             *
-             *     switch (a) {
-             *         case 1:
-             *             break;
-             *         case 2:
-             *         case 3:
-             *             break;
-             *         ...
-             *     }
-             *
-             * NOTE: Ideally we wouldn't have a blank line between
-             *       fall-through `case` statements, but that's not an
-             *       option. This at least encourages us to document the
-             *       fall-through explicitly.
-             */
-            {
-                blankLine: 'always',
-                next: '*',
-                prev: ['case', 'default'],
-            },
-
-            /*
-             * Require a blank line between `return` statements.
-             *
-             * For example:
-             *
-             *     myFunc();
-             *
-             *     return result;
-             *
-             * Not:
-             *
-             *     myFunc();
-             *     return result;
-             */
-            {
-                blankLine: 'always',
-                next: 'return',
-                prev: '*',
-            },
-        ],
-
-        /*
-         * Require single quotes for strings, except when the text contains
-         * a single quote.
-         *
-         * Template literals are NOT allowed here. The ES6 rule will turn
-         * them on.
-         *
-         * https://v4.eslint.style/rules/default/quotes
-         */
-        '@stylistic/quotes': [
-            'error',
-            'single',
-            {
-                avoidEscape: true,
-            },
-        ],
-
-        /*
-         * Require semicolons at the end of lines.
-         *
-         * https://v4.eslint.style/rules/default/semi
-         */
-        '@stylistic/semi': [
-            'error',
-            'always',
-        ],
-
-        /*
-         * Disallow spaces within parenthesis.
-         *
-         * For example:
-         *
-         *     myFunc(a, b);
-         *
-         * Not:
-         *
-         *     myFunc( a, b );
-         *
-         * https://v4.eslint.style/rules/default/space-in-parens
-         */
-        '@stylistic/space-in-parens': [
-            'error',
-            'never',
-        ],
-
-        /*
-         * Require a space after `//` or `/*`, except for special comment
-         * types.
-         *
-         * For example:
-         *
-         *     // This is a comment.
-         *     /* This is another ...
-         *     /** This is a doc comment ...
-         *     /*! This is a special comment ...
-         *     /// <reference types="my-types"/>
-         *
-         * Not:
-         *
-         *     //This is a comment.
-         *     /*This is another ...
-         *
-         * https://v4.eslint.style/rules/default/spaced-comment
-         */
-        '@stylistic/spaced-comment': [
-            'error',
-            'always',
-            {
-                block: {
-                    markers: ['*', '!'],
+                {
+                    blankLine: 'always',
+                    next: '*',
+                    prev: ['case', 'default'],
                 },
-                exceptions: ['*', '-', '/'],
-                markers: ['/'],
-            },
-        ],
+
+                /*
+                 * Require a blank line between `return` statements.
+                 *
+                 * For example:
+                 *
+                 *     myFunc();
+                 *
+                 *     return result;
+                 *
+                 * Not:
+                 *
+                 *     myFunc();
+                 *     return result;
+                 */
+                {
+                    blankLine: 'always',
+                    next: 'return',
+                    prev: '*',
+                },
+            ],
+
+            /*
+             * Require single quotes for strings, except when the text contains
+             * a single quote.
+             *
+             * Template literals are NOT allowed here. The ES6 rule will turn
+             * them on.
+             *
+             * https://eslint.style/rules/default/quotes
+             */
+            '@stylistic/quotes': [
+                'error',
+                'single',
+                {
+                    avoidEscape: true,
+                },
+            ],
+
+            /*
+             * Require semicolons at the end of lines.
+             *
+             * https://eslint.style/rules/default/semi
+             */
+            '@stylistic/semi': [
+                'error',
+                'always',
+            ],
+
+            /*
+             * Disallow spaces within parenthesis.
+             *
+             * For example:
+             *
+             *     myFunc(a, b);
+             *
+             * Not:
+             *
+             *     myFunc( a, b );
+             *
+             * https://eslint.style/rules/default/space-in-parens
+             */
+            '@stylistic/space-in-parens': [
+                'error',
+                'never',
+            ],
+
+            /*
+             * Require a space after `//` or `/*`, except for special comment
+             * types.
+             *
+             * For example:
+             *
+             *     // This is a comment.
+             *     /* This is another ...
+             *     /** This is a doc comment ...
+             *     /*! This is a special comment ...
+             *     /// <reference types="my-types"/>
+             *
+             * Not:
+             *
+             *     //This is a comment.
+             *     /*This is another ...
+             *
+             * https://eslint.style/rules/default/spaced-comment
+             */
+            '@stylistic/spaced-comment': [
+                'error',
+                'always',
+                {
+                    block: {
+                        markers: ['*', '!'],
+                    },
+                    exceptions: ['*', '-', '/'],
+                    markers: ['/'],
+                },
+            ],
+        },
     },
-};
+]);
 
 
-/*
+/**
  * Rules for ES6 JavaScript codebases.
  *
  * This builds upon the ES5 rules to add some further requirements around
@@ -1028,57 +1045,58 @@ const es5Config = {
  *
  * If using the "recommended" configuration set, this will apply to all
  * filenames with *.es6.js or *.ts patterns.
+ *
+ * Version Changed:
+ *     4.0.0:
+ *     Updated to the new flat-config format.
  */
-const es6Config = {
-    env: {
-        es2021: true,
-    },
-
-    parserOptions: {
-        ecmaVersion: 'latest',
-    },
-
-    globals: {
-        /* Pre-declare what's provided by our plugins. */
-        dedent: 'readonly',
-    },
-
-    rules: {
-        /*
-         * Require `const` or `let`, not `var`.
-         *
-         * https://eslint.org/docs/latest/rules/no-var
-         */
-        'no-var': 'error',
-
-        /*
-         * Warn if declaring a variable `let` instead of `const` when the
-         * variable never gets re-assigned.
-         */
-        'prefer-const': 'warn',
-
-        /*
-         * Require single quotes for strings, except when the text contains
-         * a single quote.
-         *
-         * Template literals are also allowed, which can be useful when there
-         * are both single and double quotes in the string.
-         *
-         * https://eslint.org/docs/latest/rules/quotes
-         */
-        'quotes': [
-            'error',
-            'single',
-            {
-                allowTemplateLiterals: true,
-                avoidEscape: true,
+const es6Config = defineConfig([
+    {
+        languageOptions: {
+            ecmaVersion: 'latest',
+            globals: {
+                /* Pre-declare what's provided by our plugins. */
+                dedent: 'readonly',
             },
-        ],
+        },
+
+        rules: {
+            /*
+             * Require `const` or `let`, not `var`.
+             *
+             * https://eslint.org/docs/latest/rules/no-var
+             */
+            'no-var': 'error',
+
+            /*
+             * Warn if declaring a variable `let` instead of `const` when the
+             * variable never gets re-assigned.
+             */
+            'prefer-const': 'warn',
+
+            /*
+             * Require single quotes for strings, except when the text contains
+             * a single quote.
+             *
+             * Template literals are also allowed, which can be useful when
+             * there are both single and double quotes in the string.
+             *
+             * https://eslint.style/rules/default/quotes
+             */
+            '@stylistic/quotes': [
+                'error',
+                'single',
+                {
+                    allowTemplateLiterals: true,
+                    avoidEscape: true,
+                },
+            ],
+        },
     },
-};
+]);
 
 
-/*
+/**
  * Rules for TypeScript codebases.
  *
  * This builds upon the ES6 rules to tweak our TypeScript configuration to
@@ -1086,30 +1104,35 @@ const es6Config = {
  *
  * If using the "recommended" configuration set, this will apply to all
  * filenames with a *.ts pattern.
+ *
+ * Version Changed:
+ *     4.0.0:
+ *     Updated to the new flat-config format.
  */
-const typescriptConfig = {
-    extends: [
-        'plugin:@beanbag/es6',
-        'plugin:@typescript-eslint/recommended',
-    ],
+const typescriptConfig = defineConfig([
+    tseslint.configs.recommended,
+    {
+        rules: {
+            /*
+             * Warn if using `var self = this`.
+             *
+             * By default, the TypeScript recommended ruleset will outright
+             * disallow it. We convert to a warning, to help port legacy code.
+             */
+            '@typescript-eslint/no-this-alias': 'warn',
 
-    parser: '@typescript-eslint/parser',
-
-    plugins: [
-        '@stylistic',
-        '@typescript-eslint',
-    ],
-
-    rules: {
-        /*
-         * Warn if using `var self = this`.
-         *
-         * By default, the TypeScript recommended ruleset will outright
-         * disallow it. We convert to a warning, to help port legacy code.
-         */
-        '@typescript-eslint/no-this-alias': 'warn',
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    args: 'none',
+                    argsIgnorePattern: '^_',
+                    vars: 'local',
+                    varsIgnorePattern: '^_',
+                },
+            ],
+        },
     },
-};
+]);
 
 
 /**
@@ -1118,14 +1141,20 @@ const typescriptConfig = {
  * This simply enables JSX parsing for supported JSX file extensions.
  *
  * This is meant to be mixed in with a JavaScript configuration.
+ *
+ * Version Changed:
+ *     4.0.0:
+ *     Updated to the new flat-config format.
  */
-const jsxConfig = {
-    parserOptions: {
-        'ecmaFeatures': {
-            'jsx': true,
+const jsxConfig = defineConfig([{
+    languageOptions: {
+        parserOptions: {
+            ecmaFeatures: {
+                jsx: true,
+            },
         },
     },
-};
+}]);
 
 
 /*
@@ -1135,93 +1164,96 @@ const jsxConfig = {
  * global we use for a scratch area in the DOM.
  *
  * This is meant to be mixed in with a JavaScript configuration.
+ *
+ * Version Changed:
+ *     4.0.0:
+ *     Updated to the new flat-config format.
  */
-const jasmineTestsConfig = {
-    env: {
-        '@beanbag/jasmine-suites': true,
-        jasmine: true,
+const jasmineTestsConfig = defineConfig([
+    jasmine.configs.recommended,
+    {
+        plugins: {
+            jasmine,
+        },
+
+        languageOptions: {
+            globals: {
+                ...globals.jasmine,
+                $testsScratch: 'writable',
+                suite: false,
+            },
+        },
+
+        rules: {
+            /*
+             * Don't require blank lines before `expect()`.
+             *
+             * This would be nice to keep enabled, just to make sure `expect()`
+             * calls don't get lost, but it has a flaw where multiple
+             * multi-line `expect()` statements end up needing to be separated
+             * by blank lines.
+             *
+             * https://github.com/tlvince/eslint-plugin-jasmine/blob/master/docs/rules/new-line-before-expect.md
+             */
+            'jasmine/new-line-before-expect': 'off',
+
+            /*
+             * Don't complain about assertions in `beforeEach()`,
+             * `afterEach()`, etc.
+             *
+             * There's no harm in doing this. We do it to ensure our test
+             * harness state is correct.
+             *
+             * https://github.com/tlvince/eslint-plugin-jasmine/blob/master/docs/rules/no-expect-in-setup-teardown.md
+             */
+            'jasmine/no-expect-in-setup-teardown': 'off',
+
+            /*
+             * Don't complain about `beforeEach()`/`afterEach()`/etc. outside
+             * of `describe()`.
+             *
+             * Normally we would want to leave this enabled, but we use our own
+             * `suite()` commands from jasmine-suites, and this rule doesn't
+             * know about that.
+             *
+             * https://github.com/tlvince/eslint-plugin-jasmine/blob/master/docs/rules/no-global-setup.md
+             */
+            'jasmine/no-global-setup': 'off',
+
+            /*
+             * Display an error when test specs in the same `describe()` have
+             * the same name.
+             *
+             * https://github.com/tlvince/eslint-plugin-jasmine/blob/master/docs/rules/no-spec-dupes.md
+             */
+            'jasmine/no-spec-dupes': [
+                'error',
+                'branch',
+            ],
+
+            /*
+             * Display an error when `describe()`s in the same `describe()`
+             * have the same name.
+             *
+             * https://github.com/tlvince/eslint-plugin-jasmine/blob/master/docs/rules/no-suite-dupes.md
+             */
+            'jasmine/no-suite-dupes': [
+                'warn',
+                'branch',
+            ],
+
+            /*
+             * Don't complain about `toHaveBeenCalled()`.
+             *
+             * It's valid to use `toHaveBeenCalled()`. This appears to have
+             * been a personal preference from the author.
+             *
+             * https://github.com/tlvince/eslint-plugin-jasmine/blob/master/docs/rules/prefer-toHaveBeenCalledWith.md
+             */
+            'jasmine/prefer-toHaveBeenCalledWith': 'off',
+        },
     },
-
-    extends: [
-        'plugin:jasmine/recommended',
-    ],
-
-    plugins: [
-        'jasmine',
-    ],
-
-    globals: {
-        '$testsScratch': 'writable',
-    },
-
-    rules: {
-        /*
-         * Don't require blank lines before `expect()`.
-         *
-         * This would be nice to keep enabled, just to make sure `expect()`
-         * calls don't get lost, but it has a flaw where multiple multi-line
-         * `expect()` statements end up needing to be separated by blank
-         * lines.
-         *
-         * https://github.com/tlvince/eslint-plugin-jasmine/blob/master/docs/rules/new-line-before-expect.md
-         */
-        'jasmine/new-line-before-expect': 'off',
-
-        /*
-         * Don't complain about assertions in `beforeEach()`/`afterEach()`/etc.
-         *
-         * There's no harm in doing this. We do it to ensure our test harness
-         * state is correct.
-         *
-         * https://github.com/tlvince/eslint-plugin-jasmine/blob/master/docs/rules/no-expect-in-setup-teardown.md
-         */
-        'jasmine/no-expect-in-setup-teardown': 'off',
-
-        /*
-         * Don't complain about `beforeEach()`/`afterEach()`/etc. outside of
-         * `describe()`.
-         *
-         * Normally we would want to leave this enabled, but we use our own
-         * `suite()` commands from jasmine-suites, and this rule doesn't know
-         * about that.
-         *
-         * https://github.com/tlvince/eslint-plugin-jasmine/blob/master/docs/rules/no-global-setup.md
-         */
-        'jasmine/no-global-setup': 'off',
-
-        /*
-         * Display an error when test specs in the same `describe()` have the
-         * same name.
-         *
-         * https://github.com/tlvince/eslint-plugin-jasmine/blob/master/docs/rules/no-spec-dupes.md
-         */
-        'jasmine/no-spec-dupes': [
-            'error',
-            'branch',
-        ],
-
-        /*
-         * Display an error when `describe()`s in the same `describe()` have
-         * the same name.
-         *
-         * https://github.com/tlvince/eslint-plugin-jasmine/blob/master/docs/rules/no-suite-dupes.md
-         */
-        'jasmine/no-suite-dupes': [
-            'warn',
-            'branch',
-        ],
-
-        /*
-         * Don't complain about `toHaveBeenCalled()`.
-         *
-         * It's valid to use `toHaveBeenCalled()`. This appears to have been
-         * a personal preference from the author.
-         *
-         * https://github.com/tlvince/eslint-plugin-jasmine/blob/master/docs/rules/prefer-toHaveBeenCalledWith.md
-         */
-        'jasmine/prefer-toHaveBeenCalledWith': 'off',
-    },
-};
+]);
 
 
 /**
@@ -1231,8 +1263,12 @@ const jasmineTestsConfig = {
  * files in a more standard way.
  *
  * This is meant to be mixed in with a JavaScript configuration.
+ *
+ * Version Changed:
+ *     4.0.0:
+ *     Updated to the new flat-config format.
  */
-const storybookConfig = {
+const storybookConfig = defineConfig([{
     rules: {
         /*
          * Don't warn about sorting keys in objects.
@@ -1243,127 +1279,115 @@ const storybookConfig = {
          */
         'sort-keys': 'off',
     },
-};
+}]);
 
 
-export const configs = {
-    /* JavaScript rulesets */
-    es5: es5Config,
-    es6: es6Config,
-    jsx: jsxConfig,
-    typescript: typescriptConfig,
+/**
+ * The recommended configuration.
+ *
+ * This enables all of our recommended rulesets for appropriate files.
+ *
+ * Version Added:
+ *     4.0.0
+ */
+const recommendedConfig = defineConfig([
+    es5Config,
 
-    /* Environmental rulesets */
-    jasmine: jasmineTestsConfig,
-    storybook: storybookConfig,
-
-    /* Recommended ruleset */
-    recommended: {
-        extends: [
-            'plugin:@beanbag/es5',
-        ],
-
-        plugins: [
-            '@beanbag',
-        ],
-
-        overrides: [
-            /* ES6 JavaScript */
-            {
-                files: [
-                    '*.es6.js',
-                    '*.es6.jsx',
-                ],
-
-                extends: [
-                    'plugin:@beanbag/es6',
-                ],
-            },
-
-            /* TypeScript */
-            {
-                files: [
-                    '*.ts',
-                    '*.tsx',
-                ],
-
-                extends: [
-                    'plugin:@beanbag/typescript',
-                ],
-            },
-
-            /* JSX files. */
-            {
-                files: [
-                    '*.jsx',
-                    '*.tsx',
-                ],
-
-                extends: [
-                    'plugin:@beanbag/jsx',
-                ],
-            },
-
-            /* Jasmine Unit Tests */
-            {
-                files: [
-                    '*Tests.es6.js',
-                    '*Tests.es6.jsx',
-                    '*Tests.js',
-                    '*Tests.jsx',
-                    '*Tests.ts',
-                    '*Tests.tsx',
-                ],
-
-                extends: [
-                    'plugin:@beanbag/jasmine',
-                ],
-            },
-
-            /* Storybook Stories */
-            {
-                files: [
-                    '*.stories.js',
-                    '*.stories.jsx',
-                    '*.stories.ts',
-                    '*.stories.tsx',
-                ],
-
-                extends: [
-                    'plugin:@beanbag/storybook',
-                ],
-            },
-
-            /* JavaScript Build Configuration */
-            {
-                files: [
-                    'rollup.config.js',
-                    '.babelrc',
-                ],
-
-                extends: [
-                    'plugin:@beanbag/es6',
-                ],
-
-                parserOptions: {
-                    sourceType: 'module',
-                },
-            },
+    /* ES6+ JavaScript */
+    {
+        extends: [es6Config],
+        files: [
+            '**/*.es6.js',
+            '**/*.es6.jsx',
         ],
     },
-};
+
+    /* TypeScript */
+    {
+        extends: [typescriptConfig],
+        files: [
+            '**/*.ts',
+            '**/*.tsx',
+        ],
+    },
+
+    /* JSX files */
+    {
+        extends: [jsxConfig],
+        files: [
+            '**/*.jsx',
+            '**/*.tsx',
+        ],
+    },
+
+    /* Jasmine unit tests */
+    {
+        extends: [jasmineTestsConfig],
+        files: [
+            '**/*Tests.es6.js',
+            '**/*Tests.es6.jsx',
+            '**/*Tests.js',
+            '**/*Tests.jsx',
+            '**/*Tests.ts',
+            '**/*Tests.tsx',
+            'tests/**/*',
+        ],
+    },
+
+    /* Storybook stories */
+    {
+        extends: [storybookConfig],
+        files: [
+            '**/*.stories.js',
+            '**/*.stories.jsx',
+            '**/*.stories.ts',
+            '**/*.stories.tsx',
+        ],
+    },
+
+    /* Javascript build configuration */
+    {
+        extends: [es6Config],
+        files: [
+            '**/rollup.config.js',
+            '**/rollup.config.mjs',
+            '**/eslint.config.js',
+            '**/eslint.config.mjs',
+        ],
+        languageOptions: {
+            sourceType: 'module',
+        },
+    },
+]);
 
 
-export const environments = {
-    'backbone': {
-        globals: {
+/**
+ * The eslint plugin definition.
+ *
+ * Version Added:
+ *     4.0.0
+ */
+const plugin = {
+    configs: {
+        /* JavaScript rulesets. */
+        es5: es5Config,
+        es6: es6Config,
+        typescript: typescriptConfig,
+
+        /* Environmental rulesets. */
+        jasmine: jasmineTestsConfig,
+        jsx: jsxConfig,
+        storybook: storybookConfig,
+
+        /* Recommended ruleset. */
+        recommended: recommendedConfig,
+    },
+    globals: {
+        backbone: {
             Backbone: false,
             _: false,
         },
-    },
-
-    'django': {
-        globals: {
+        django: {
             django: false,
             gettext: false,
             gettext_noop: false,
@@ -1372,19 +1396,14 @@ export const environments = {
             npgettext: false,
             pgettext: false,
         },
-    },
-
-    'djblets': {
-        Djblets: false,
-    },
-
-    'jasmine-suites': {
-        globals: {
-            suite: false,
+        djblets: {
+            Djblets: false,
+        },
+        reviewboard: {
+            RB: false,
         },
     },
-
-    'reviewboard': {
-        RB: false,
-    },
 };
+
+
+export default plugin;

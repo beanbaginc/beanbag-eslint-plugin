@@ -1,5 +1,10 @@
 {
     "compilerOptions": {
-        "noEmit": true
+        "declaration": true,
+        "declarationDir": "./_build/dts",
+        "emitDeclarationOnly": true,
+        "esModuleInterop": true,
+        "module": "preserve",
+        "skipLibCheck": true
     }
 }
