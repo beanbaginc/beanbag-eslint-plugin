@@ -37,7 +37,8 @@
         "clean": "rm -rf lib _build",
         "build": "tsc && rollup -c --bundleConfigAsCjs",
         "full-build": "npm run clean && npm run build",
-        "lint": "eslint src"
+        "lint": "eslint src",
+        "test": "jasmine"
     },
     "dependencies": {
         "@eslint/js": "^9.38.0",
@@ -49,7 +50,9 @@
     "devDependencies": {
         "@beanbag/eslint-plugin": "file:",
         "@beanbag/frontend-buildkit": "^2.0.0",
+        "@types/jasmine": "^5.1.12",
         "eslint": "^9.38.0",
+        "jasmine": "^5.12.0",
         "typescript": "^5.9.3"
     },
     "peerDependencies": {

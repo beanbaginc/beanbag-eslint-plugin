@@ -19,8 +19,9 @@ import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+import rules from './rules';
 
-/*
+
 /**
  * A string regex pattern used for `case` fall-through markers in `switch`.
  *
@@ -1130,6 +1131,16 @@ const typescriptConfig = defineConfig([
                     varsIgnorePattern: '^_',
                 },
             ],
+
+            /*
+             * Disallow direct static member access in @spina decorated
+             * classes.
+             *
+             * In classes decorated with @spina, static members should be
+             * accessed via `this.constructor` instead of the class name to
+             * ensure proper inheritance behavior.
+             */
+            '@beanbag/spina-wrapped-static-access': 'error',
         },
     },
 ]);
@@ -1403,6 +1414,7 @@ const plugin = {
             RB: false,
         },
     },
+    rules: rules,
 };
 
 

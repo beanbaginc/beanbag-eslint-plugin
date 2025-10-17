@@ -7,6 +7,9 @@
 
 * Added TypeScript definitions to the build.
 
+* Added the `@beanbag/spina-wrapped-static-access` rule to detect and suggest
+  fixes for accessing static members inside of `@spina`-wrapped classes.
+
 
 ## Version 3.0.0 (8-October-2025)
 
