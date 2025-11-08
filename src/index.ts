@@ -1115,12 +1115,21 @@ const typescriptConfig = defineConfig([
     {
         rules: {
             /*
-             * Warn if using `var self = this`.
+             * Disallow direct static member access in @spina decorated
+             * classes.
              *
-             * By default, the TypeScript recommended ruleset will outright
-             * disallow it. We convert to a warning, to help port legacy code.
+             * In classes decorated with @spina, static members should be
+             * accessed via `this.constructor` instead of the class name to
+             * ensure proper inheritance behavior.
              */
-            '@typescript-eslint/no-this-alias': 'warn',
+            '@beanbag/spina-wrapped-static-access': 'error',
+
+            '@typescript-eslint/no-empty-object-type': [
+                'error',
+                {
+                    allowInterfaces: 'with-single-extends',
+                },
+            ],
 
             '@typescript-eslint/no-unused-vars': [
                 'error',
@@ -1133,14 +1142,12 @@ const typescriptConfig = defineConfig([
             ],
 
             /*
-             * Disallow direct static member access in @spina decorated
-             * classes.
+             * Warn if using `var self = this`.
              *
-             * In classes decorated with @spina, static members should be
-             * accessed via `this.constructor` instead of the class name to
-             * ensure proper inheritance behavior.
+             * By default, the TypeScript recommended ruleset will outright
+             * disallow it. We convert to a warning, to help port legacy code.
              */
-            '@beanbag/spina-wrapped-static-access': 'error',
+            '@typescript-eslint/no-this-alias': 'warn',
         },
     },
 ]);
